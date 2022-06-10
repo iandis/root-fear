@@ -1,3 +1,3 @@
 ## 0.0.1
 
-* TODO: Describe initial release.
+* Init RootFear: implement `isRooted` method call to `RootBeer.isRooted`
