@@ -16,7 +16,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  String _rootState = 'No root indication';
 
   @override
   void initState() {
@@ -30,10 +30,11 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
+      final bool isRooted = await RootFear().isRooted;
       platformVersion =
-          await RootFear.platformVersion ?? 'Unknown platform version';
+          isRooted ? 'Detected root indication.' : 'No root indication.';
     } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+      platformVersion = 'Failed to get root indication.';
     }
 
     // If the widget was removed from the tree while the asynchronous platform
@@ -42,7 +43,7 @@ class _MyAppState extends State<MyApp> {
     if (!mounted) return;
 
     setState(() {
-      _platformVersion = platformVersion;
+      _rootState = platformVersion;
     });
   }
 
@@ -51,10 +52,10 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('RootFear example app'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Text(_rootState),
         ),
       ),
     );
