@@ -1,9 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="app.iandis.root_fear_example">
+    package="app.iandis.root_fear_example"
+    xmlns:tools="http://schemas.android.com/tools">
    <application
         android:label="root_fear_example"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:zygotePreloadName="app.iandis.rootfear.security.AppZygotePreload"
+        tools:targetApi="q">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -30,5 +33,11 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <service
+           android:name="app.iandis.rootfear.security.IsolatedService"
+           android:exported="false"
+           android:isolatedProcess="true"
+           android:useAppZygote="true" />
     </application>
 </manifest>
