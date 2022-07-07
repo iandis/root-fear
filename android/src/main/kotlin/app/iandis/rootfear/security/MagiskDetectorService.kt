@@ -11,7 +11,7 @@ import io.flutter.Log
 class MagiskDetectorService : ServiceConnection {
 
     companion object {
-        private val TAG: String = this::class.java.simpleName
+        private val TAG: String = MagiskDetectorService::class.java.simpleName
     }
 
     private var isolatedService: IIsolatedService? = null
@@ -22,14 +22,14 @@ class MagiskDetectorService : ServiceConnection {
         get() {
             if (!isServiceBound) return false
             return try {
-                isolatedService.isMagiskPresent()
+                isolatedService?.isMagiskPresent ?: false
             } catch (t: Throwable) {
                 false
             }
         }
 
     fun bind(context: Context) {
-        val intent: Intent = Intent(
+        val intent = Intent(
             context,
             IsolatedService::class.java
         )
