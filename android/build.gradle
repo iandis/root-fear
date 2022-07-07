@@ -1,4 +1,4 @@
-group 'app.iandis.root_fear'
+group 'app.iandis.rootfear'
 version '1.0-SNAPSHOT'
 
 buildscript {

@@ -1,4 +1,4 @@
-package app.iandis.root_fear.security;
+package app.iandis.rootfear.security;
 
 interface IIsolatedService {
     bool isMagiskPresent();
