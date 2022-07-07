@@ -2,6 +2,7 @@ package app.iandis.root_fear
 
 import android.util.Log
 import androidx.annotation.NonNull
+import app.iandis.root_fear.security.MagiskDetectorService
 import com.scottyab.rootbeer.RootBeer
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -24,10 +25,15 @@ class RootFearPlugin : FlutterPlugin, MethodCallHandler {
 
     private var _rootBeer: RootBeer? = null
 
+    private var _magiskDetectorService: MagiskDetectorService? = null
+
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, _channelName)
         channel.setMethodCallHandler(this)
         _rootBeer = RootBeer(flutterPluginBinding.applicationContext)
+        _magiskDetectorService = MagiskDetectorService().also {
+            it.bind(flutterPluginBinding.applicationContext)
+        }
         _backgroundExecutor = Executors.newSingleThreadExecutor()
     }
 
@@ -45,7 +51,9 @@ class RootFearPlugin : FlutterPlugin, MethodCallHandler {
     }
 
     private fun _checkIsRooted(onResult: (Boolean) -> Unit) = _backgroundExecutor?.execute {
-        val isRooted: Boolean = _rootBeer?.isRooted ?: false
+        val isRootBearDetectsRoot: Boolean = _rootBeer?.isRooted ?: false
+        val isMagiskDetected: Boolean = _magiskDetectorService?.isMagiskPresent ?: false
+        val isRooted: Boolean = isRootBearDetectsRoot || isMagiskDetected
         onResult(isRooted)
     }
 
@@ -53,6 +61,8 @@ class RootFearPlugin : FlutterPlugin, MethodCallHandler {
         channel.setMethodCallHandler(null)
         _backgroundExecutor?.shutdown()
         _backgroundExecutor = null
+        _magiskDetectorService?.unbind(binding.applicationContext)
+        _magiskDetectorService = null
         _rootBeer = null
     }
 }
