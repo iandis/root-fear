@@ -1,5 +1,5 @@
-group 'app.iandis.root_fear'
-version '1.0-SNAPSHOT'
+group 'app.iandis.rootfear'
+version '1.1'
 
 buildscript {
     ext.kotlin_version = '1.6.10'
@@ -37,11 +37,25 @@ android {
     }
 
     sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
+        main {
+            java.srcDirs += 'src/main/kotlin'
+            aidl.srcDirs = ['src/main/aidl']
+        }
     }
 
     defaultConfig {
         minSdkVersion 21
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
     }
 }
 
