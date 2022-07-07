@@ -1,6 +1,6 @@
 name: root_fear
 description: Package to detect root on Android.
-version: 0.0.1
+version: 0.0.2
 repository: https://www.github.com/iandis/root-fear
 issue_tracker: https://www.github.com/iandis/root-fear/issues
 
