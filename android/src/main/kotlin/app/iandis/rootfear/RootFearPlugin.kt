@@ -10,59 +10,60 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
-class RootFearPlugin : FlutterPlugin, MethodCallHandler {
+class RootFearPlugin : FlutterPlugin, MethodCallHandler, CoroutineScope {
 
     companion object {
-        private const val _channelName: String = "root-fear-plugin"
+        private const val CHANNEL_NAME: String = "root-fear-plugin"
     }
+
+    private lateinit var job: Job
+
+    override val coroutineContext: CoroutineContext get() = Dispatchers.IO + job
 
     private lateinit var channel: MethodChannel
 
-    private var _backgroundExecutor: ExecutorService? = null
+    private var rootBeer: RootBeer? = null
 
-    private var _rootBeer: RootBeer? = null
-
-    private var _magiskDetectorService: MagiskDetectorService? = null
+    private var magiskDetectorService: MagiskDetectorService? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, _channelName)
+        job = Job()
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL_NAME)
         channel.setMethodCallHandler(this)
-        _rootBeer = RootBeer(flutterPluginBinding.applicationContext)
-        _magiskDetectorService = MagiskDetectorService().also {
+        rootBeer = RootBeer(flutterPluginBinding.applicationContext)
+        magiskDetectorService = MagiskDetectorService().also {
             it.bind(flutterPluginBinding.applicationContext)
         }
-        _backgroundExecutor = Executors.newSingleThreadExecutor()
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         try {
             when (call.method) {
-                "isRooted" -> _checkIsRooted { result.success(it) }
+                "isRooted" -> launch {
+                    val isRooted: Boolean = checkIsRooted()
+                    result.success(isRooted)
+                }
                 else -> result.notImplemented()
             }
         } catch (e: Throwable) {
-            Log.e(_channelName, e.message ?: "Unknown error.", e.cause)
+            Log.e(CHANNEL_NAME, e.message ?: "Unknown error.", e.cause)
             result.error("ROOT_FEAR_UNKNOWN_ERROR", e.message, e.cause)
         }
 
     }
 
-    private fun _checkIsRooted(onResult: (Boolean) -> Unit) = _backgroundExecutor?.execute {
-        val isRootBearDetectsRoot: Boolean = _rootBeer?.isRooted ?: false
-        val isMagiskDetected: Boolean = _magiskDetectorService?.isMagiskPresent ?: false
-        val isRooted: Boolean = isRootBearDetectsRoot || isMagiskDetected
-        onResult(isRooted)
+    private suspend fun checkIsRooted(): Boolean = withContext(Dispatchers.IO) {
+        magiskDetectorService?.isMagiskPresent == true || rootBeer?.isRooted == true
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
-        _backgroundExecutor?.shutdown()
-        _backgroundExecutor = null
-        _magiskDetectorService?.unbind(binding.applicationContext)
-        _magiskDetectorService = null
-        _rootBeer = null
+        job.cancel()
+        magiskDetectorService?.unbind(binding.applicationContext)
+        magiskDetectorService = null
+        rootBeer = null
     }
 }
